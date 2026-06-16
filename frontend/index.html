@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detection System</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --primary: #38bdf8;
+            --primary-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body { 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #020617, var(--bg));
+            color: var(--text-main);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { 
+            background: rgba(15, 23, 42, 0.5); 
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px; 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            margin: 0;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        .container {
+            margin: 60px auto;
+            max-width: 600px;
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 30px; }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        a { 
+            text-decoration: none; 
+            font-size: 18px; 
+            font-weight: 600;
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Super AI Detection System</h1>
+</header>
+
+<div class="container">
+    <h2>Welcome to the Project</h2>
+    <p>We now support both <b>Face Mask Detection</b> and <b>Plant Disease Detection</b>! Choose a feature below to get started:</p>
+    <div class="links">
+        <a href="upload.html?mode=mask">😷 Face Mask Detection</a>
+        <a href="upload.html?mode=plant">🌿 Plant Disease Detection</a>
+        <a href="admin.html">📊 Admin Dashboard</a>
+        <a href="about.html">ℹ️ About Project</a>
+        <a href="contact.html">✉️ Contact</a>
+    </div>
+</div>
+
+</body>
+</html>

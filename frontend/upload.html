@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Upload Image</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --primary: #38bdf8;
+            --text-main: #f8fafc;
+        }
+        body { 
+            text-align: center; 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: linear-gradient(135deg, #020617, var(--bg));
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header { 
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5); 
+            padding: 20px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 { margin: 0; font-size: 24px; color: var(--primary); }
+        .box { 
+            margin-top: 50px; 
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Mode toggle tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 6px;
+        }
+        .mode-tab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s;
+            background: transparent;
+            color: #94a3b8;
+        }
+        .mode-tab.active {
+            background: var(--primary);
+            color: #0f172a;
+        }
+
+        .preview-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 20px auto;
+            border: 2px dashed #94a3b8;
+            border-radius: 15px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #previewImage {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+        .laser {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 2px;
+            background: #38bdf8;
+            box-shadow: 0 0 15px #38bdf8, 0 0 30px #38bdf8;
+            display: none;
+            animation: scan 2s linear infinite;
+        }
+        @keyframes scan {
+            0%   { top: 0%;   opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .status-text {
+            color: #38bdf8;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 20px;
+        }
+        input[type="file"] { display: none; }
+        .upload-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-block;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .upload-btn:hover { background: rgba(255,255,255,0.2); }
+        .predict-btn {
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: none;
+            width: 100%;
+        }
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.4);
+        }
+        .predict-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #94a3b8;
+            text-decoration: none;
+        }
+        a:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>AI Upload Portal</h1>
+</header>
+
+<div class="box">
+    <h2>Select Detection Mode</h2>
+
+    <!-- Mode selector -->
+    <div class="mode-tabs">
+        <button class="mode-tab active" id="tabMask" onclick="setMode('mask')">😷 Face Mask</button>
+        <button class="mode-tab"        id="tabPlant" onclick="setMode('plant')">🌿 Plant Disease</button>
+    </div>
+
+    <label class="upload-btn">
+        Choose Image
+        <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(event)">
+    </label>
+
+    <div class="preview-container">
+        <span id="placeholderText" style="color:#64748b;">No Image Selected</span>
+        <img id="previewImage" crossorigin="anonymous">
+        <div class="laser" id="laserLine"></div>
+    </div>
+
+    <div class="status-text" id="statusMessage"></div>
+
+    <button class="predict-btn" id="predictBtn" onclick="runScan()">Start Neural Scan</button>
+    <br>
+    <a href="index.html">← Go Back Home</a>
+</div>
+
+<script>
+// Set your Groq API key here or load from your backend
+const GROQ_API_KEY = window.GROQ_API_KEY || "";
+const GROQ_MODEL   = "meta-llama/llama-4-scout-17b-16e-instruct";
+
+let currentMode = "mask";
+const uploadedImageElement = document.getElementById('previewImage');
+
+// Fetch Groq API key from backend (key lives in server .env, never in source)
+let GROQ_API_KEY = "";
+fetch("/api/config")
+    .then(r => r.json())
+    .then(cfg => { GROQ_API_KEY = cfg.groq_api_key; })
+    .catch(() => {});
+
+// Read mode from URL param if coming from index links e.g. upload.html?mode=plant
+const urlMode = new URLSearchParams(window.location.search).get("mode");
+if (urlMode === "plant") setMode("plant");
+
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById("tabMask").classList.toggle("active",  mode === "mask");
+    document.getElementById("tabPlant").classList.toggle("active", mode === "plant");
+}
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        uploadedImageElement.src = e.target.result;
+        uploadedImageElement.style.display = "block";
+        document.getElementById('placeholderText').style.display = "none";
+        document.getElementById('predictBtn').style.display = "block";
+        document.getElementById('statusMessage').innerText = "Ready to analyze...";
+        document.getElementById('statusMessage').style.color = "#38bdf8";
+    };
+    reader.readAsDataURL(file);
+}
+
+function compressToBase64(imgEl, maxSize = 800, quality = 0.82) {
+    const canvas = document.createElement("canvas");
+    let w = imgEl.naturalWidth, h = imgEl.naturalHeight;
+    if (w > h && w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+    else if (h > maxSize)     { w = Math.round(w * maxSize / h); h = maxSize; }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(imgEl, 0, 0, w, h);
+    return canvas.toDataURL("image/jpeg", quality).split(",")[1];
+}
+
+const PROMPTS = {
+    mask: `Look at this image carefully. Is the person wearing a face mask over their nose and mouth?
+Reply with ONLY one of these two exact phrases: 'With Mask' or 'Without Mask'. No other text.`,
+
+    plant: `You are a plant pathologist AI. Examine this leaf image carefully.
+Identify any disease present. Reply in EXACTLY one of these formats:
+- If healthy: 'Healthy'
+- If diseased: 'Diseased - <disease name>'
+Examples: 'Healthy', 'Diseased - Leaf Rust', 'Diseased - Powdery Mildew', 'Diseased - Bacterial Blight'
+No other text.`
+};
+
+function parseLabel(rawText, mode) {
+    const t = rawText.trim();
+    if (mode === "mask") {
+        return t.toLowerCase().includes("without") ? "Without Mask" : "With Mask";
+    } else {
+        // plant: normalise to "Healthy" or "Diseased - X"
+        if (t.toLowerCase().startsWith("diseased")) {
+            const parts = t.split("-");
+            const disease = parts.length > 1 ? parts.slice(1).join("-").trim() : "Unknown Disease";
+            return "Diseased - " + disease;
+        }
+        return "Healthy";
+    }
+}
+
+async function runScan() {
+    const laser  = document.getElementById('laserLine');
+    const status = document.getElementById('statusMessage');
+    const btn    = document.getElementById('predictBtn');
+
+    if (!GROQ_API_KEY) {
+        status.innerText = "API key not configured. Check server .env file.";
+        status.style.color = "#ef4444";
+        return;
+    }
+
+    laser.style.display = 'block';
+    btn.disabled = true;
+    status.innerText = "Scanning with Groq AI...";
+    status.style.color = "#818cf8";
+
+    try {
+        const base64Image = compressToBase64(uploadedImageElement);
+
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + GROQ_API_KEY
+            },
+            body: JSON.stringify({
+                model: GROQ_MODEL,
+                temperature: 0.1,
+                max_completion_tokens: 20,
+                messages: [{
+                    role: "user",
+                    content: [
+                        { type: "text", text: PROMPTS[currentMode] },
+                        { type: "image_url", image_url: { url: "data:image/jpeg;base64," + base64Image } }
+                    ]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error?.message || "Groq API error " + response.status);
+        }
+
+        const data  = await response.json();
+        const label = parseLabel(data.choices[0].message.content, currentMode);
+
+        const finalData = { label, confidence: 0.97, image: base64Image, mode: currentMode };
+        localStorage.setItem("predData", JSON.stringify(finalData));
+
+        let history = JSON.parse(localStorage.getItem("scanHistory") || "[]");
+        history.unshift({ id: Date.now(), label, confidence: 0.97, time: new Date().toLocaleString(), mode: currentMode });
+        if (history.length > 50) history.pop();
+        localStorage.setItem("scanHistory", JSON.stringify(history));
+
+        window.location.href = "result.html";
+
+    } catch (e) {
+        console.error("Groq error:", e);
+        status.innerText = "Could not analyze image. Please try again.";
+        status.style.color = "#ef4444";
+        laser.style.display = 'none';
+        btn.disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>

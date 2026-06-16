@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Contact</title>
+    <style>
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            text-align: center; 
+            background: #0f172a; color: white;
+            padding-top: 50px;
+        }
+        form {
+            background: rgba(30,41,59,0.7);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        h2 { color: #38bdf8; }
+        input, textarea { 
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+        textarea { height: 100px; resize: none; }
+        button { 
+            background: #38bdf8; color: #0f172a;
+            border: none; padding: 15px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #0ea5e9; color: white; }
+        a { display: inline-block; margin-top: 20px; color: #94a3b8; text-decoration: none; }
+        a:hover { color: white; }
+    </style>
+</head>
+<body>
+
+<h2>Contact Us</h2>
+
+<form onsubmit="event.preventDefault(); alert('Message sent!'); window.location.href='index.html';">
+    <input type="text" placeholder="Your Name" required>
+    <input type="email" placeholder="Your Email" required>
+    <textarea placeholder="Message" required></textarea>
+    <button type="submit">Send</button>
+</form>
+
+<a href="index.html">← Back to Home</a>
+
+</body>
+</html>
