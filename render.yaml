@@ -6,8 +6,8 @@ services:
     startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GROQ_API_KEY
-        sync: false   # set manually in Render dashboard
+        sync: false
       - key: DATABASE_URL
-        sync: false   # set manually in Render dashboard (use Internal Database URL)
+        sync: false
       - key: PYTHON_VERSION
-        value: "3.11"
+        value: "3.11.0"

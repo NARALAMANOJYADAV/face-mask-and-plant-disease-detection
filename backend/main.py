@@ -20,7 +20,14 @@ BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BACKEND_DIR, '..', 'frontend'))
 
 sys.path.append(os.path.abspath(os.path.join(BACKEND_DIR, '..')))
-from src.predict import FaceMaskPredictor
+
+# Predictor is optional — only works if tensorflow is installed and model exists
+predictor = None
+try:
+    from src.predict import FaceMaskPredictor
+    _predictor_available = True
+except ImportError:
+    _predictor_available = False
 
 app = FastAPI()
 
@@ -34,12 +41,21 @@ def root():
 @app.on_event("startup")
 def load_model():
     global predictor
-    model_path = os.path.abspath(os.path.join(BACKEND_DIR, '..', 'models', 'best_model.h5'))
-    predictor = FaceMaskPredictor(model_path=model_path)
+    if _predictor_available:
+        model_path = os.path.abspath(os.path.join(BACKEND_DIR, '..', 'models', 'best_model.h5'))
+        predictor = FaceMaskPredictor(model_path=model_path)
+    else:
+        predictor = None
 
 
 @app.post("/api/predict")
 async def predict_image(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if predictor is None:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Local model not available. Use Groq-powered detection in the UI."}
+        )
+
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
