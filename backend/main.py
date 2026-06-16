@@ -77,19 +77,16 @@ def get_config():
     return {"groq_api_key": os.environ.get("GROQ_API_KEY", "")}
 
 
+@app.get("/api/stats")
 def get_stats(db: Session = Depends(get_db)):
     total = db.query(DetectionHistory).count()
     if total == 0:
         return {"total": 0, "mask_count": 0, "no_mask_count": 0}
-        
-    mask_count = db.query(DetectionHistory).filter(DetectionHistory.prediction_label == "With Mask").count()
+
+    mask_count    = db.query(DetectionHistory).filter(DetectionHistory.prediction_label == "With Mask").count()
     no_mask_count = db.query(DetectionHistory).filter(DetectionHistory.prediction_label == "Without Mask").count()
-    
-    return {
-        "total": total,
-        "mask_count": mask_count,
-        "no_mask_count": no_mask_count,
-    }
+
+    return {"total": total, "mask_count": mask_count, "no_mask_count": no_mask_count}
 
 @app.get("/api/history")
 def get_history(limit: int = 10, db: Session = Depends(get_db)):
