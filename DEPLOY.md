@@ -45,10 +45,10 @@ Scroll down to the **Environment Variables** section and add:
 
 | Key | Value |
 |-----|-------|
-| `GROQ_API_KEY` | `your_groq_api_key_here` |
-| `RENDER` | `true` |
+| `GROQ_API_KEY` | your Groq API key |
+| `DATABASE_URL` | `postgresql://detection_zcmj_user:CLIZ4GFYktjBTJKAMy9LhDIRD6AXbppa@dpg-d8oh0jsm0tmc73cof6fg-a/detection_zcmj` |
 
-> ⚠️ Keep `GROQ_API_KEY` secret — never put it in your code or commit it to git.
+> Use the **Internal Database URL** (no `.oregon-postgres.render.com` in the hostname) — it's faster and works only between Render services. Use the External URL only for local development.
 
 ---
 
